@@ -1,5 +1,7 @@
 package model;
 
+import enumirations.Status;
+
 public class SubTask extends Task {
     private Integer epicId;
 
