@@ -10,7 +10,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     private Node tail;
     private Map<Integer, Node> historyId;
 
-    public InMemoryHistoryManager() {this.historyId = new HashMap<>();}
+    public InMemoryHistoryManager() {
+        this.historyId = new HashMap<>();
+    }
 
     @Override
     public void add(Task task) {
@@ -43,9 +45,11 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public List<Task> getHistory() {return getTasks();}
+    public List<Task> getHistory() {
+        return getTasks();
+    }
 
-    private void removeNode (Node node) {
+    private void removeNode(Node node) {
         Node next = node.next;
         Node prev = node.prev;
         if (prev == null) {
