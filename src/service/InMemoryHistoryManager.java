@@ -67,17 +67,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task == null) {
             return null;
         }
-        Node last = this.tail;
+        Node last = tail;
         Node newNode = new Node(last, task, null);
-        this.tail = newNode;
-        if (last == null) {
-            this.tail = newNode;
-        }
-        else {
+        tail = newNode;
+        if (last != null) {
             last.next = newNode;
         }
-        if (this.head == null) {
-            this.head = newNode;
+        if (head == null) {
+            head = newNode;
         }
         return newNode;
     }
