@@ -31,10 +31,14 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Epic> getEpicList() { return new ArrayList<>(epicMap.values()); }
+    public List<Epic> getEpicList() {
+        return new ArrayList<>(epicMap.values());
+    }
 
     @Override
-    public List<SubTask> getSubTaskList() { return new ArrayList<>(subTaskMap.values()); }
+    public List<SubTask> getSubTaskList() {
+        return new ArrayList<>(subTaskMap.values());
+    }
 
     @Override
     public void clearTaskMap() {
@@ -60,7 +64,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskById (int id) {
+    public Task getTaskById(int id) {
         if (!taskMap.containsKey(id)) {
             return null;
         }
@@ -245,5 +249,4 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
     }
-
 }
