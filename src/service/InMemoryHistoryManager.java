@@ -6,9 +6,9 @@ import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
-    private Node head;
-    private Node tail;
-    private Map<Integer, Node> historyId;
+    private Node<Task> head;
+    private Node<Task> tail;
+    private Map<Integer, Node<Task>> historyId;
 
     public InMemoryHistoryManager() {
         this.historyId = new HashMap<>();
@@ -35,11 +35,11 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public void removeAll(Map<Integer, ? extends Task> map) {
-        for (Integer key : map.keySet()) {
-            if (historyId.containsKey(key)) {
-                removeNode(historyId.get(key));
-                historyId.remove(key);
+    public void removeAll(Set<Integer> tasksId) {
+        for (Integer id : tasksId) {
+            if (historyId.containsKey(id)) {
+                removeNode(historyId.get(id));
+                historyId.remove(id);
             }
         }
     }
@@ -49,9 +49,9 @@ public class InMemoryHistoryManager implements HistoryManager {
         return getTasks();
     }
 
-    private void removeNode(Node node) {
-        Node next = node.next;
-        Node prev = node.prev;
+    private void removeNode(Node<Task> node) {
+        Node<Task> next = node.next;
+        Node<Task> prev = node.prev;
         if (prev == null) {
             head = next;
         } else {
@@ -67,12 +67,12 @@ public class InMemoryHistoryManager implements HistoryManager {
         node.item = null;
     }
 
-    private Node linkLast(Task task) {
+    private Node<Task> linkLast(Task task) {
         if (task == null) {
             return null;
         }
-        Node last = this.tail;
-        Node newNode = new Node(last, task, null);
+        Node<Task> last = this.tail;
+        Node<Task> newNode = new Node<>(last, task, null);
         this.tail = newNode;
         if (last == null) {
             this.tail = newNode;
@@ -89,19 +89,19 @@ public class InMemoryHistoryManager implements HistoryManager {
     private List<Task> getTasks() {
         List<Task> result = new ArrayList<>(historyId.size());
 
-        for (Node x = head; x != null; x = x.next) {
+        for (Node<Task> x = head; x != null; x = x.next) {
             result.add(x.item);
         }
         return result;
     }
 
-    public static class Node {
+    public static class Node<T extends Task> {
 
-        private Task item;
-        private Node next;
-        private Node prev;
+        private T item;
+        private Node<T> next;
+        private Node<T> prev;
 
-        public Node(Node prev, Task element, Node next) {
+        public Node(Node<T> prev, T element, Node<T>  next) {
             this.item = element;
             this.next = next;
             this.prev = prev;
