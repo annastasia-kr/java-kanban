@@ -21,11 +21,20 @@ public class Epic extends Task {
         return new ArrayList<>(subTasksId);
     }
 
-    public boolean addToSubTasksId(Integer subTaskId){
+    public boolean addToSubTasksId(Integer subTaskId) {
         return subTasksId.add(subTaskId);
     }
 
-    public boolean removeFromSubTasksId(Integer subTaskId){
+    public boolean removeFromSubTasksId(Integer subTaskId) {
         return subTasksId.remove(subTaskId);
+    }
+
+    @Override
+    public String toString() {
+        return "{name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", id=" + getId() +
+                ", status=" + getStatus() +
+                ",subTasksId=" + subTasksId + '}';
     }
 }

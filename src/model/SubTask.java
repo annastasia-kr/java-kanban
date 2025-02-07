@@ -10,7 +10,7 @@ public class SubTask extends Task {
         this.epicId = epicId;
     }
 
-    public SubTask(SubTask subTask){
+    public SubTask(SubTask subTask) {
         super(subTask);
         this.epicId = subTask.epicId;
     }
@@ -19,4 +19,12 @@ public class SubTask extends Task {
         return epicId;
     }
 
+    @Override
+    public String toString() {
+        return "{name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", id=" + getId() +
+                ", status=" + getStatus() +
+                ", epicId=" + epicId + '}';
+    }
 }
