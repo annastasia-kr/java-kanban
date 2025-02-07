@@ -142,6 +142,21 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
+    public Task createTask(Task task, int idCounter) {
+        if (task == null || isUsed(idCounter)) {
+            return null;
+        }
+        task.setId(idCounter);
+        Task createdTask = new Task(task);
+        taskMap.put(idCounter, createdTask);
+        if (idCounter >= this.idCounter) {
+            this.idCounter = idCounter;
+            this.idCounter++;
+        }
+        return task;
+    }
+
+    @Override
     public Epic createEpic(Epic epic) {
         if (epic == null) {
             return null;
@@ -151,6 +166,22 @@ public class InMemoryTaskManager implements TaskManager {
         Epic createdEpic = new Epic(epic);
         epicMap.put(idCounter, createdEpic);
         idCounter++;
+        return epic;
+    }
+
+    @Override
+    public Epic createEpic(Epic epic, int idCounter) {
+        if (epic == null || isUsed(idCounter)) {
+            return null;
+        }
+        epic.setId(idCounter);
+        epic.setStatus(Status.NEW);
+        Epic createdEpic = new Epic(epic);
+        epicMap.put(idCounter, createdEpic);
+        if (idCounter >= this.idCounter) {
+            this.idCounter = idCounter;
+            this.idCounter++;
+        }
         return epic;
     }
 
@@ -168,6 +199,29 @@ public class InMemoryTaskManager implements TaskManager {
             epic.addToSubTasksId(idCounter);
             epic.setStatus(calculateEpicStatus(epic));
             idCounter++;
+            return subTask;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public SubTask createSubTask(SubTask subTask, int idCounter) {
+        if (subTask == null || isUsed(idCounter)) {
+            return null;
+        }
+        subTask.setId(idCounter);
+        if (epicMap.containsKey(subTask.getEpicId())) {
+            SubTask createdSubTask = new SubTask(subTask);
+            subTaskMap.put(idCounter, createdSubTask);
+
+            Epic epic =  epicMap.get(subTask.getEpicId());
+            epic.addToSubTasksId(idCounter);
+            epic.setStatus(calculateEpicStatus(epic));
+            if (idCounter >= this.idCounter) {
+                this.idCounter = idCounter;
+                this.idCounter++;
+            }
             return subTask;
         } else {
             return null;
@@ -222,6 +276,11 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(historyManager.getHistory());
     }
 
+    @Override
+    public int getIdCounter() {
+        return idCounter;
+    }
+
     private Status calculateEpicStatus(Epic epic) {
         List<Integer> subTasksId = epic.getSubTasksId();
         if (subTasksId.isEmpty()) {
@@ -248,5 +307,12 @@ public class InMemoryTaskManager implements TaskManager {
                 return Status.IN_PROGRESS;
             }
         }
+    }
+
+    private boolean isUsed(int id) {
+        if (taskMap.containsKey(id) || epicMap.containsKey(id) || subTaskMap.containsKey(id)) {
+            return true;
+        }
+        return false;
     }
 }

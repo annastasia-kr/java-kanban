@@ -71,6 +71,22 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
+    void createTaskWithId() {
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        Task task = new Task(name, description, Status.NEW);
+
+        taskManager.createTask(task, 10);
+        Task taskFromTaskManager = taskManager.getTaskById(task.getId());
+
+        assertEquals(10, taskFromTaskManager.getId());
+        assertEquals(Status.NEW, taskFromTaskManager.getStatus());
+        assertEquals(name, taskFromTaskManager.getName());
+        assertEquals(description, taskFromTaskManager.getDescription());
+        assertEquals(11, taskManager.getIdCounter());
+    }
+
+    @Test
     void createEpic() {
         String name = "Проект 1";
         String description = "Составить ТЗ для проекта 1";
@@ -91,6 +107,27 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
+    void createEpicWithId() {
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        ArrayList<Integer> subTasksId = new ArrayList<>();
+        Epic epic = new Epic(name, description);
+
+        Epic createdEpic = taskManager.createEpic(epic, 12);
+        SubTask subTask = new SubTask(name, description, Status.NEW, createdEpic.getId());
+        taskManager.createSubTask(subTask, 5);
+        subTasksId.add(subTask.getId());
+        Epic epicFromTaskManager = taskManager.getEpicById(epic.getId());
+
+        assertEquals(12, epicFromTaskManager.getId());
+        assertEquals(Status.NEW, epicFromTaskManager.getStatus());
+        assertEquals(name, epicFromTaskManager.getName());
+        assertEquals(description, epicFromTaskManager.getDescription());
+        assertEquals(subTasksId, epicFromTaskManager.getSubTasksId());
+        assertEquals(13, taskManager.getIdCounter());
+    }
+
+    @Test
     void createSubTask() {
         Epic epic = new Epic("Эпик", "Описание");
         taskManager.createEpic(epic);
@@ -108,6 +145,39 @@ class InMemoryTaskManagerTest {
         assertEquals(epic.getId(), subTaskFromTaskManager.getEpicId());
     }
 
+    @Test
+    void createSubTaskWithId() {
+        Epic epic = new Epic("Эпик", "Описание");
+        taskManager.createEpic(epic, 1);
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        SubTask subTask = new SubTask(name, description, Status.NEW, epic.getId());
+
+        taskManager.createSubTask(subTask, 2);
+        SubTask subTaskFromTaskManager = taskManager.getSubTaskById(subTask.getId());
+
+        assertEquals(2, subTaskFromTaskManager.getId());
+        assertEquals(Status.NEW, subTaskFromTaskManager.getStatus());
+        assertEquals(name, subTaskFromTaskManager.getName());
+        assertEquals(description, subTaskFromTaskManager.getDescription());
+        assertEquals(epic.getId(), subTaskFromTaskManager.getEpicId());
+        assertEquals(3, taskManager.getIdCounter());
+    }
+
+    @Test
+    void createdSubTaskIsNull() {
+        Epic epic = new Epic("Эпик", "Описание");
+        taskManager.createEpic(epic, 1);
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        SubTask subTask = new SubTask(name, description, Status.NEW, epic.getId());
+
+        taskManager.createSubTask(subTask, 1);
+        SubTask subTaskFromTaskManager = taskManager.getSubTaskById(subTask.getId());
+
+        assertNull(subTaskFromTaskManager);
+        assertEquals(2, taskManager.getIdCounter());
+    }
     @Test
     void updateTask() {
         Task task = new Task("Задача", "Описание задачи", Status.NEW);
