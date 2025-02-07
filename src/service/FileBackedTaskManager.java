@@ -121,7 +121,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             fileWriter.write(getStringFromTasksList(getTaskList(), Type.TASK));
             fileWriter.write(getStringFromTasksList(getEpicList(), Type.EPIC));
             fileWriter.write(getStringFromTasksList(getSubTaskList(), Type.SUBTASK));
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при сохранении в файл " + e.getMessage());
         }
     }
@@ -153,7 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 fileBackedTaskManager.readTaskFromFile(allLines.get(i));
             }
             return fileBackedTaskManager;
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new ManagerFileInitializationException("Ошибка при чтении из файла " + e.getMessage());
         }
     }
