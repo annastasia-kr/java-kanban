@@ -48,4 +48,5 @@ public interface TaskManager {
 
     List<Task> getHistory();
 
+    int getIdCounter();
 }
