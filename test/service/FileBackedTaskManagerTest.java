@@ -69,7 +69,7 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         taskManager.createSubTask(subTask);
         subTasksId.add(subTask.getId());
         Epic epicFromTaskManager = taskManager.getEpicById(epic.getId());
-        List<String> allLines = null;
+        List<String> allLines;
         try {
             allLines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
@@ -101,7 +101,7 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
 
         taskManager.createSubTask(subTask);
         SubTask subTaskFromTaskManager = taskManager.getSubTaskById(subTask.getId());
-        List<String> allLines = null;
+        List<String> allLines;
         try {
             allLines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
@@ -128,7 +128,7 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
 
         task.setName("Новое имя задачи");
         taskManager.updateTask(task);
-        List<String> allLines = null;
+        List<String> allLines;
         try {
             allLines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
@@ -150,7 +150,7 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
 
         epic.setName("Новое имя эпика");
         taskManager.updateEpic(epic);
-        List<String> allLines = null;
+        List<String> allLines;
         try {
             allLines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
@@ -174,7 +174,7 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
 
         subTask.setStatus(Status.IN_PROGRESS);
         taskManager.updateSubTask(subTask);
-        List<String> allLines = null;
+        List<String> allLines;
         try {
             allLines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
@@ -282,8 +282,6 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
             throw new ManagerSaveException("Ошибка при сохранении в файл " + e.getMessage());
         }
 
-        List<Integer> subTasksId = new ArrayList<>();
-        subTasksId.add(3);
         taskManager = FileBackedTaskManager.loadFromFile(file);
 
         assertNotNull(taskManager.getEpicById(25));
