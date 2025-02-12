@@ -16,9 +16,9 @@ import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    private File file;
+    private final File file;
 
-    FileBackedTaskManager(File file) {
+    public FileBackedTaskManager(File file) {
         this.file = file;
     }
 
@@ -152,9 +152,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             for (int i = 1; i < allLines.size(); i++) {
                 fileBackedTaskManager.readTaskFromFile(allLines.get(i));
             }
+            fileBackedTaskManager.updateEpicsSubTasksList();
             return fileBackedTaskManager;
         } catch (IOException e) {
             throw new ManagerFileInitializationException("Ошибка при чтении из файла " + e.getMessage());
+        }
+    }
+
+    private void updateEpicsSubTasksList() {
+        List<Epic> epicsList = getEpicList();
+        for (SubTask subTask : getSubTaskList()) {
+            if (epicsList.contains(subTask.getEpicId())) {
+                Epic epic = epicMap.get(subTask.getEpicId());
+                epic.addToSubTasksId(subTask.getId());
+            }
+        }
+        for (Epic epic : epicsList) {
+            epic.setStatus(calculateEpicStatus(epic));
         }
     }
 
@@ -162,17 +176,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String[] tasksFields = line.split(",");
 
         int id = Integer.parseInt(tasksFields[0]);
+        if (this.idCounter < id) {
+            this.idCounter = id + 1;
+        }
         Type type = Type.valueOf(tasksFields[1]);
         String name = tasksFields[2];
         Status status = Status.valueOf(tasksFields[3]);
         String description = tasksFields[4];
 
         switch (type) {
-            case TASK -> createTask(new Task(name, description, status), id);
-            case EPIC -> createEpic(new Epic(name, description), id);
+            case TASK -> taskMap.put(id, new Task(name, description, status));
+            case EPIC -> epicMap.put(id, new Epic(name, description));
             case SUBTASK -> {
                 int epicId = Integer.parseInt(tasksFields[5]);
-                createSubTask(new SubTask(name, description, status, epicId), id);
+                subTaskMap.put(id, new SubTask(name, description, status, epicId));
             }
         }
     }

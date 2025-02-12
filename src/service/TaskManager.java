@@ -38,12 +38,6 @@ public interface TaskManager {
 
     SubTask createSubTask(SubTask subTask);
 
-    Task createTask(Task task, int id);
-
-    Epic createEpic(Epic epic, int id);
-
-    SubTask createSubTask(SubTask subTask, int id);
-
     Task updateTask(Task task);
 
     Epic updateEpic(Epic epic);
