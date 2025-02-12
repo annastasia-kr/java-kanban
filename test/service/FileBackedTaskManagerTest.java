@@ -21,102 +21,15 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
 
     File file;
 
+    @Override
     @BeforeEach
-    void beforeEach() throws IOException {
-        file = Files.createTempFile("data", ".csv").toFile();
+    void beforeEach() {
+        try {
+            file = Files.createTempFile("data", ".csv").toFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         taskManager = new FileBackedTaskManager(file);
-    }
-
-    @Override
-    @Test
-    void createTask() {
-        String name = "Проект 1";
-        String description = "Составить ТЗ для проекта 1";
-        Task task = new Task(name, description, Status.NEW);
-        List<String> expectedResult = new ArrayList<>();
-
-        taskManager.createTask(task);
-        List<String> allLines;
-        try {
-            allLines = Files.readAllLines(file.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        Task taskFromTaskManager = taskManager.getTaskById(task.getId());
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("1,TASK,Проект 1,NEW,Составить ТЗ для проекта 1");
-
-
-        assertEquals(expectedResult, allLines);
-        assertEquals(2, taskManager.getIdCounter());
-        assertEquals(1, taskFromTaskManager.getId());
-        assertEquals(Status.NEW, taskFromTaskManager.getStatus());
-        assertEquals(name, taskFromTaskManager.getName());
-        assertEquals(description, taskFromTaskManager.getDescription());
-    }
-
-    @Override
-    @Test
-    void createEpic() {
-        String name = "Проект 1";
-        String description = "Составить ТЗ для проекта 1";
-        ArrayList<Integer> subTasksId = new ArrayList<>();
-        Epic epic = new Epic(name, description);
-        List<String> expectedResult = new ArrayList<>();
-
-        Epic createdEpic = taskManager.createEpic(epic);
-        SubTask subTask = new SubTask(name, description, Status.NEW, createdEpic.getId());
-        taskManager.createSubTask(subTask);
-        subTasksId.add(subTask.getId());
-        Epic epicFromTaskManager = taskManager.getEpicById(epic.getId());
-        List<String> allLines;
-        try {
-            allLines = Files.readAllLines(file.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("1,EPIC,Проект 1,NEW,Составить ТЗ для проекта 1");
-        expectedResult.add("2,SUBTASK,Проект 1,NEW,Составить ТЗ для проекта 1,1");
-
-
-        assertEquals(expectedResult, allLines);
-        assertEquals(3, taskManager.getIdCounter());
-        assertEquals(1, epicFromTaskManager.getId());
-        assertEquals(Status.NEW, epicFromTaskManager.getStatus());
-        assertEquals(name, epicFromTaskManager.getName());
-        assertEquals(description, epicFromTaskManager.getDescription());
-        assertEquals(subTasksId, epicFromTaskManager.getSubTasksId());
-    }
-
-    @Override
-    @Test
-    void createSubTask() {
-        Epic epic = new Epic("Эпик", "Описание");
-        taskManager.createEpic(epic);
-        String name = "Проект 1";
-        String description = "Составить ТЗ для проекта 1";
-        SubTask subTask = new SubTask(name, description, Status.NEW, epic.getId());
-        List<String> expectedResult = new ArrayList<>();
-
-        taskManager.createSubTask(subTask);
-        SubTask subTaskFromTaskManager = taskManager.getSubTaskById(subTask.getId());
-        List<String> allLines;
-        try {
-            allLines = Files.readAllLines(file.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("1,EPIC,Эпик,NEW,Описание");
-        expectedResult.add("2,SUBTASK,Проект 1,NEW,Составить ТЗ для проекта 1,1");
-
-        assertEquals(expectedResult, allLines);
-        assertEquals(2, subTaskFromTaskManager.getId());
-        assertEquals(Status.NEW, subTaskFromTaskManager.getStatus());
-        assertEquals(name, subTaskFromTaskManager.getName());
-        assertEquals(description, subTaskFromTaskManager.getDescription());
-        assertEquals(epic.getId(), subTaskFromTaskManager.getEpicId());
     }
 
     @Override
