@@ -12,7 +12,7 @@ import java.util.*;
 import java.time.ZoneId;
 
 public class InMemoryTaskManager implements TaskManager {
-    public final static ZoneId ZONE_ID = ZoneId.of("Europe/Moscow");
+    public static final ZoneId ZONE_ID = ZoneId.of("Europe/Moscow");
 
     protected Map<Integer, Task> taskMap;
     protected Map<Integer, Epic> epicMap;
@@ -146,7 +146,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task createTask(Task task){
+    public Task createTask(Task task) {
         if (task == null) {
             return null;
         }
@@ -210,7 +210,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task updateTask(Task task) {
         if (taskMap.containsKey(task.getId())) {
-            updateTasksByPriority (taskMap.get(task.getId()), task);
+            updateTasksByPriority(taskMap.get(task.getId()), task);
             Task existingTask = new Task(task);
             taskMap.put(existingTask.getId(), existingTask);
         }
@@ -230,7 +230,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public SubTask updateSubTask(SubTask subTask) {
         if (subTaskMap.containsKey(subTask.getId())) {
-            updateTasksByPriority (subTaskMap.get(subTask.getId()), subTask);
+            updateTasksByPriority(subTaskMap.get(subTask.getId()), subTask);
             SubTask existingSubTask = new SubTask(subTask);
             subTaskMap.put(existingSubTask.getId(), existingSubTask);
             if (epicMap.containsKey(existingSubTask.getEpicId())) {
@@ -335,8 +335,8 @@ public class InMemoryTaskManager implements TaskManager {
     private boolean hasIntersection(Task task) {
         LocalDateTime startTime = task.getStartTime();
         LocalDateTime endTime = task.getEndTime();
-        long ceilEpochMinutesToStartTime = (long)Math.ceil(startTime.atZone(ZONE_ID).toEpochSecond()/ 60.0) / 15;
-        long ceilEpochMinutesToEndTime =  (long)Math.ceil(endTime.atZone(ZONE_ID).toEpochSecond()/ 60.0) / 15;
+        long ceilEpochMinutesToStartTime = (long)Math.ceil(startTime.atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
+        long ceilEpochMinutesToEndTime =  (long)Math.ceil(endTime.atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
         for (long i = ceilEpochMinutesToStartTime; i <= ceilEpochMinutesToEndTime; i++) {
             if (setOfIntersection.contains(i)) {
                 return true;
@@ -355,8 +355,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void freeIntersectionsSlots(Task task) {
-        long slotForStartTime = (long)Math.ceil(task.getStartTime().atZone(ZONE_ID).toEpochSecond()/ 60.0) / 15;
-        long slotForEndTime =  (long)Math.ceil(task.getEndTime().atZone(ZONE_ID).toEpochSecond()/ 60.0) / 15;
+        long slotForStartTime = (long)Math.ceil(task.getStartTime().atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
+        long slotForEndTime =  (long)Math.ceil(task.getEndTime().atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
         for (long i = slotForStartTime; i <= slotForEndTime; i++) {
             setOfIntersection.remove(i);
         }
@@ -373,8 +373,8 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     private void takeIntersectionsSlots(Task task) {
-        long slotForStartTime = (long)Math.ceil(task.getStartTime().atZone(ZONE_ID).toEpochSecond()/ 60.0) / 15;
-        long slotForEndTime =  (long)Math.ceil(task.getEndTime().atZone(ZONE_ID).toEpochSecond()/ 60.0) / 15;
+        long slotForStartTime = (long)Math.ceil(task.getStartTime().atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
+        long slotForEndTime =  (long)Math.ceil(task.getEndTime().atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
         for (long i = slotForStartTime; i <= slotForEndTime; i++) {
             setOfIntersection.add(i);
         }

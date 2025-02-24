@@ -59,6 +59,74 @@ public abstract class AbstractTaskManagerTest<T extends TaskManager> {
     }
 
     @Test
+    void shouldBeNewEpicStatus() {
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        Epic epic = new Epic(name, description);
+
+        Epic createdEpic = taskManager.createEpic(epic);
+        SubTask subTask = new SubTask(name, description,  Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask);
+        SubTask subTask1 = new SubTask(name, description,  Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1991, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask1);
+
+        assertEquals(Status.NEW, taskManager.getEpicById(1).getStatus());
+    }
+
+    @Test
+    void shouldBeInProgressEpicStatus() {
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        Epic epic = new Epic(name, description);
+
+        Epic createdEpic = taskManager.createEpic(epic);
+        SubTask subTask = new SubTask(name, description,  Status.IN_PROGRESS, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask);
+        SubTask subTask1 = new SubTask(name, description,  Status.IN_PROGRESS, Duration.ZERO,
+                LocalDateTime.of(1991, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask1);
+
+        assertEquals(Status.IN_PROGRESS, taskManager.getEpicById(1).getStatus());
+    }
+
+    @Test
+    void shouldBeInProgressEpicStatusWithoutSubtasksInProgress() {
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        Epic epic = new Epic(name, description);
+
+        Epic createdEpic = taskManager.createEpic(epic);
+        SubTask subTask = new SubTask(name, description,  Status.DONE, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask);
+        SubTask subTask1 = new SubTask(name, description,  Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1991, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask1);
+
+        assertEquals(Status.IN_PROGRESS, taskManager.getEpicById(1).getStatus());
+    }
+
+    @Test
+    void shouldBeDoneEpicStatus() {
+        String name = "Проект 1";
+        String description = "Составить ТЗ для проекта 1";
+        Epic epic = new Epic(name, description);
+
+        Epic createdEpic = taskManager.createEpic(epic);
+        SubTask subTask = new SubTask(name, description,  Status.DONE, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask);
+        SubTask subTask1 = new SubTask(name, description,  Status.DONE, Duration.ZERO,
+                LocalDateTime.of(1991, 1, 1, 1, 1), createdEpic.getId());
+        taskManager.createSubTask(subTask1);
+
+        assertEquals(Status.DONE, taskManager.getEpicById(1).getStatus());
+    }
+
+    @Test
     void createSubTask() {
         Epic epic = new Epic("Эпик", "Описание");
         taskManager.createEpic(epic);
