@@ -81,14 +81,14 @@ public class Task {
     }
 
     public LocalDateTime getStartTime() {
-        if(this.startTime == null) {
+        if (this.startTime == null) {
             return null;
         }
         return this.startTime;
     }
 
     public Duration getDuration() {
-        if(this.duration == null) {
+        if (this.duration == null) {
             return Duration.ZERO;
         }
         return this.duration;
