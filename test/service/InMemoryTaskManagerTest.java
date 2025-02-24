@@ -9,4 +9,5 @@ class InMemoryTaskManagerTest extends AbstractTaskManagerTest<InMemoryTaskManage
     void beforeEach() {
         taskManager = new InMemoryTaskManager();
     }
+
 }

@@ -7,6 +7,9 @@ import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
@@ -20,7 +23,8 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void add() {
-        Task task = new Task("Задача", "Описание", Status.NEW);
+        Task task = new Task("Задача", "Описание", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1));
         taskManager.createTask(task);
 
         taskManager.getTaskById(task.getId());
@@ -34,11 +38,14 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void shouldBeRemoved() {
-        Task task = new Task("Задача", "Описание", Status.NEW);
+        Task task = new Task("Задача", "Описание", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1));
         taskManager.createTask(task);
-        Task task1 = new Task("Задача1", "Описание1", Status.NEW);
+        Task task1 = new Task("Задача1", "Описание1", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 27));
         taskManager.createTask(task1);
-        Task task2 = new Task("Задача2", "Описание2", Status.NEW);
+        Task task2 = new Task("Задача2", "Описание2", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 2, 1));
         taskManager.createTask(task2);
 
         taskManager.getTaskById(task1.getId());
@@ -54,11 +61,13 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void shouldBeRemovedAllEpics() {
-        Task task = new Task("Задача", "Описание", Status.NEW);
+        Task task = new Task("Задача", "Описание", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 21));
         taskManager.createTask(task);
         Epic epic = new Epic("Эпик", "Описание эпика");
         taskManager.createEpic(epic);
-        Task task1 = new Task("Задача2", "Описание2", Status.NEW);
+        Task task1 = new Task("Задача2", "Описание2", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1));
         taskManager.createTask(task1);
         Epic epic1 = new Epic("Эпик1", "Описание эпика1");
         taskManager.createEpic(epic1);
@@ -79,9 +88,11 @@ class InMemoryHistoryManagerTest {
         taskManager.createEpic(epic);
         Epic epic1 = new Epic("Эпик1", "Описание эпика1");
         taskManager.createEpic(epic1);
-        SubTask subTask1 = new SubTask("Подзадача1", "Описание1", Status.NEW, 1);
+        SubTask subTask1 = new SubTask("Подзадача1", "Описание1", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), 1);
         taskManager.createSubTask(subTask1);
-        SubTask subTask = new SubTask("Подзадача", "Описание", Status.NEW, 1);
+        SubTask subTask = new SubTask("Подзадача", "Описание", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 26), 1);
         taskManager.createSubTask(subTask);
 
         taskManager.getSubTaskById(subTask.getId());
@@ -98,9 +109,11 @@ class InMemoryHistoryManagerTest {
     void shouldBeDeletedSubTaskByIdFromHistory() {
         Epic epic = new Epic("Эпик", "Описание эпика");
         taskManager.createEpic(epic);
-        SubTask subTask1 = new SubTask("Подзадача1", "Описание1", Status.NEW, 1);
+        SubTask subTask1 = new SubTask("Подзадача1", "Описание1", Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), 1);
         taskManager.createSubTask(subTask1);
-        SubTask subTask = new SubTask("Подзадача", "Описание", Status.NEW, 1);
+        SubTask subTask = new SubTask("Подзадача", "Описание",  Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 2, 1), 1);
         taskManager.createSubTask(subTask);
 
         taskManager.getSubTaskById(subTask.getId());
@@ -116,9 +129,11 @@ class InMemoryHistoryManagerTest {
     void shouldBeDeletedEpicByIdFromHistory() {
         Epic epic = new Epic("Эпик", "Описание эпика");
         taskManager.createEpic(epic);
-        SubTask subTask1 = new SubTask("Подзадача1", "Описание1", Status.NEW, 1);
+        SubTask subTask1 = new SubTask("Подзадача1", "Описание1",  Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1), 1);
         taskManager.createSubTask(subTask1);
-        SubTask subTask = new SubTask("Подзадача", "Описание", Status.NEW, 1);
+        SubTask subTask = new SubTask("Подзадача", "Описание",  Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 2, 1, 1), 1);
         taskManager.createSubTask(subTask);
 
         taskManager.getSubTaskById(subTask.getId());

@@ -5,6 +5,9 @@ import model.Task;
 import service.Managers;
 import service.TaskManager;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Main {
 
     private static void printAllTasks(TaskManager manager) {
@@ -34,8 +37,10 @@ public class Main {
     public static void main(String[] args) {
         TaskManager taskManager = Managers.getDefault();
 
-        Task task = new Task("Отправить письмо", "Направить ответ по электронной почте", Status.IN_PROGRESS);
-        Task task1 = new Task("Провести ВКС", "Произвести демонстрацию нового функционала", Status.NEW);
+        Task task = new Task("Отправить письмо", "Направить ответ по электронной почте",
+                Status.IN_PROGRESS, Duration.ofMinutes(10), LocalDateTime.of(2025, 1, 1, 1, 1));
+        Task task1 = new Task("Провести ВКС", "Произвести демонстрацию нового функционала", Status.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(2025, 1, 11, 10, 1));
         taskManager.createTask(task);
         taskManager.createTask(task1);
 
@@ -44,9 +49,12 @@ public class Main {
         taskManager.createEpic(epic);
         taskManager.createEpic(epic1);
 
-        SubTask subTask = new SubTask("Запрос КП", "Получить 3 КП", Status.IN_PROGRESS, epic.getId());
-        SubTask subTask1 = new SubTask("ТЗ", "Проверить ТЗ", Status.NEW, epic.getId());
-        SubTask subTask2 = new SubTask("Договор", "Направить договор ЮО", Status.NEW, epic.getId());
+        SubTask subTask = new SubTask("Запрос КП", "Получить 3 КП", Status.IN_PROGRESS, Duration.ofMinutes(10),
+                LocalDateTime.of(2025, 2, 1, 1, 1), epic.getId());
+        SubTask subTask1 = new SubTask("ТЗ", "Проверить ТЗ", Status.NEW, Duration.ofMinutes(10),
+                LocalDateTime.of(2025, 1, 1, 1, 15), epic.getId());
+        SubTask subTask2 = new SubTask("Договор", "Направить договор ЮО", Status.NEW, Duration.ofMinutes(10),
+                LocalDateTime.of(2025, 2, 23, 11, 15), epic.getId());
         taskManager.createSubTask(subTask);
         taskManager.createSubTask(subTask1);
         taskManager.createSubTask(subTask2);
@@ -83,5 +91,6 @@ public class Main {
 
         taskManager.deleteEpicById(epic.getId());
         System.out.println(taskManager.getHistory());
+
     }
 }

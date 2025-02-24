@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -117,31 +119,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (FileWriter fileWriter = new FileWriter(file)) {
-            fileWriter.write("id,type,name,status,description,epic\n");
+            fileWriter.write("id,type,name,status,description,duration,startTime,epic\n");
             fileWriter.write(getStringFromTasksList(getTaskList(), Type.TASK));
             fileWriter.write(getStringFromTasksList(getEpicList(), Type.EPIC));
             fileWriter.write(getStringFromTasksList(getSubTaskList(), Type.SUBTASK));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при сохранении в файл " + e.getMessage());
         }
-    }
-
-    private String getStringFromTasksList(List<? extends Task> taskList, Type type) {
-        StringBuilder line = new StringBuilder();
-
-        for (Task task : taskList) {
-            line.append(task.getId()).append(',');
-            line.append(type.name()).append(',');
-            line.append(task.getName()).append(',');
-            line.append(task.getStatus()).append(',');
-            line.append(task.getDescription());
-
-            if (task instanceof SubTask subTask) {
-                line.append(',').append(subTask.getEpicId());
-            }
-            line.append('\n');
-        }
-    return line.toString();
     }
 
     public static FileBackedTaskManager loadFromFile(File file) {
@@ -158,16 +142,39 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
+    private String getStringFromTasksList(List<? extends Task> taskList, Type type) {
+        StringBuilder line = new StringBuilder();
+
+        for (Task task : taskList) {
+            line.append(task.getId()).append(',');
+            line.append(type.name()).append(',');
+            line.append(task.getName()).append(',');
+            line.append(task.getStatus()).append(',');
+            line.append(task.getDescription()).append(',');
+            line.append(task.getDuration()).append(',');
+            line.append(task.getStartTime());
+
+            if (task instanceof SubTask subTask) {
+                line.append(',').append(subTask.getEpicId());
+            }
+            line.append('\n');
+        }
+    return line.toString();
+    }
+
     private void updateEpicsSubTasksList() {
         List<Epic> epicsList = getEpicList();
         for (SubTask subTask : getSubTaskList()) {
-            if (epicsList.contains(subTask.getEpicId())) {
+            if (epicsList.contains(getEpicById(subTask.getEpicId()))) {
                 Epic epic = epicMap.get(subTask.getEpicId());
                 epic.addToSubTasksId(subTask.getId());
             }
         }
         for (Epic epic : epicsList) {
             epic.setStatus(calculateEpicStatus(epic));
+            epic.setStartTime(calculateEpicStartTime(epic).orElse(null));
+            epic.setDuration(calculateEpicDuration(epic));
+            epic.setEndTime(calculateEpicEndTime(epic).orElse(null));
         }
     }
 
@@ -182,13 +189,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = tasksFields[2];
         Status status = Status.valueOf(tasksFields[3]);
         String description = tasksFields[4];
-
+        Duration duration = Duration.parse(tasksFields[5]);
+        LocalDateTime startTime = tasksFields[6].equals("null") ? null : LocalDateTime.parse(tasksFields[6]);
         switch (type) {
-            case TASK -> taskMap.put(id, new Task(name, description, status));
-            case EPIC -> epicMap.put(id, new Epic(name, description));
+            case TASK -> {
+                Task createdTask = new Task(name, description, status, duration, startTime);
+                createdTask.setId(id);
+                taskMap.put(id, createdTask);
+            }
+            case EPIC -> {
+                Epic createdEpic = new Epic(name, description);
+                createdEpic.setId(id);
+                epicMap.put(id, createdEpic);
+            }
             case SUBTASK -> {
-                int epicId = Integer.parseInt(tasksFields[5]);
-                subTaskMap.put(id, new SubTask(name, description, status, epicId));
+                int epicId = Integer.parseInt(tasksFields[7]);
+                SubTask createdSubTask = new SubTask(name, description, status,  duration, startTime, epicId);
+                createdSubTask.setId(id);
+                subTaskMap.put(id, createdSubTask);
             }
         }
     }

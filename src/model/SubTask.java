@@ -2,11 +2,16 @@ package model;
 
 import enumirations.Status;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class SubTask extends Task {
+
     private Integer epicId;
 
-    public SubTask(String name, String description, Status status, Integer epicId) {
-        super(name, description, status);
+    public SubTask(String name, String description, Status status, Duration duration, LocalDateTime startTime,
+                   Integer epicId) {
+        super(name, description, status, duration, startTime);
         this.epicId = epicId;
     }
 
@@ -25,6 +30,8 @@ public class SubTask extends Task {
                 ", description='" + getDescription() + '\'' +
                 ", id=" + getId() +
                 ", status=" + getStatus() +
+                ", startTime=" + getStartTime() +
+                ", duration=" + getDuration() +
                 ", epicId=" + epicId + '}';
     }
 }
