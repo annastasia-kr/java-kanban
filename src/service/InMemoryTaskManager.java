@@ -14,9 +14,9 @@ import java.time.ZoneId;
 public class InMemoryTaskManager implements TaskManager {
     public static final ZoneId ZONE_ID = ZoneId.of("Europe/Moscow");
 
-    protected Map<Integer, Task> taskMap;
-    protected Map<Integer, Epic> epicMap;
-    protected Map<Integer, SubTask> subTaskMap;
+    protected final Map<Integer, Task> taskMap;
+    protected final Map<Integer, Epic> epicMap;
+    protected final Map<Integer, SubTask> subTaskMap;
     protected Integer idCounter;
     private final HistoryManager historyManager;
     private final Set<Task> tasksByPriority;
@@ -135,9 +135,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epicMap.get(epicId);
             epic.removeFromSubTasksId(id);
             epic.setStatus(calculateEpicStatus(epic));
-            epic.setStartTime(calculateEpicStartTime(epic).orElse(null));
-            epic.setDuration(calculateEpicDuration(epic));
-            epic.setEndTime(calculateEpicEndTime(epic).orElse(null));
+            setEpicTime(epic);
             deleteFromTasksByPriority(Collections.singleton(getSubTaskById(id)));
             historyManager.remove(id);
             return subTaskMap.remove(id);
@@ -150,12 +148,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (task == null) {
             return null;
         }
-        if (task.getStartTime() != null && !task.getDuration().isZero()) {
-            try {
-                addToTasksByPriority(task);
-            } catch (ManagerTasksTimeIntersectionException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            addToTasksByPriority(task);
+        } catch (ManagerTasksTimeIntersectionException e) {
+            throw new RuntimeException(e);
         }
         task.setId(idCounter);
         Task createdTask = new Task(task);
@@ -182,12 +178,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTask == null) {
             return null;
         }
-        if (subTask.getStartTime() != null && !subTask.getDuration().isZero()) {
-            try {
-                addToTasksByPriority(subTask);
-            } catch (ManagerTasksTimeIntersectionException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            addToTasksByPriority(subTask);
+        } catch (ManagerTasksTimeIntersectionException e) {
+            throw new RuntimeException(e);
         }
         subTask.setId(idCounter);
         if (epicMap.containsKey(subTask.getEpicId())) {
@@ -197,9 +191,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic =  epicMap.get(subTask.getEpicId());
             epic.addToSubTasksId(idCounter);
             epic.setStatus(calculateEpicStatus(epic));
-            epic.setStartTime(calculateEpicStartTime(epic).orElse(null));
-            epic.setDuration(calculateEpicDuration(epic));
-            epic.setEndTime(calculateEpicEndTime(epic).orElse(null));
+            setEpicTime(epic);
             idCounter++;
             return subTask;
         } else {
@@ -236,9 +228,7 @@ public class InMemoryTaskManager implements TaskManager {
             if (epicMap.containsKey(existingSubTask.getEpicId())) {
                 Epic epic = epicMap.get(existingSubTask.getEpicId());
                 epic.setStatus(calculateEpicStatus(epic));
-                epic.setStartTime(calculateEpicStartTime(epic).orElse(null));
-                epic.setDuration(calculateEpicDuration(epic));
-                epic.setEndTime(calculateEpicEndTime(epic).orElse(null));
+                setEpicTime(epic);
             }
         }
         return subTask;
@@ -292,38 +282,19 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    protected Optional<LocalDateTime> calculateEpicStartTime(Epic epic) {
+    protected void setEpicTime(Epic epic) {
         List<Integer> subTasksId = epic.getSubTasksId();
-        if (subTasksId.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return subTasksId.stream()
-                    .map(subTaskId -> subTaskMap.get(subTaskId).getStartTime())
-                    .filter(Objects::nonNull)
-                    .min(LocalDateTime::compareTo);
-        }
-    }
+        epic.setStartTime(null);
+        epic.setEndTime(null);
+        epic.setDuration(Duration.ZERO);
 
-    protected Optional<LocalDateTime> calculateEpicEndTime(Epic epic) {
-        List<Integer> subTasksId = epic.getSubTasksId();
-        if (subTasksId.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return subTasksId.stream()
-                    .map(subTaskId -> subTaskMap.get(subTaskId).getEndTime())
-                    .filter(Objects::nonNull)
-                    .max(LocalDateTime::compareTo);
-        }
-    }
-
-    protected Duration calculateEpicDuration(Epic epic) {
-        List<Integer> subTasksId = epic.getSubTasksId();
-        if (subTasksId.isEmpty()) {
-            return Duration.ZERO;
-        } else {
-           return subTasksId.stream()
-                   .map(subTaskId -> subTaskMap.get(subTaskId).getDuration())
-                   .reduce(Duration.ZERO, Duration::plus);
+        if (!subTasksId.isEmpty()) {
+            for (Integer subTaskId : subTasksId) {
+                SubTask subTask = getSubTaskById(subTaskId);
+                epic.setStartTime(getEarlyDateTimeOrNull(subTask.getStartTime(), epic.getStartTime()));
+                epic.setEndTime(getLateDateTimeOrNull(subTask.getEndTime(), epic.getEndTime()));
+                epic.setDuration(epic.getDuration().plus(subTask.getDuration()));
+            }
         }
     }
 
@@ -347,8 +318,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void deleteFromTasksByPriority(Collection<? extends Task> tasks) {
         for (Task task : tasks) {
-            if (tasksByPriority.contains(task)) {
-                tasksByPriority.remove(task);
+            boolean removed = tasksByPriority.remove(task);
+            if (removed) {
                 freeIntersectionsSlots(task);
             }
         }
@@ -362,15 +333,15 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-
     private void addToTasksByPriority(Task task) throws ManagerTasksTimeIntersectionException {
-        if (hasIntersection(task)) {
-            throw new ManagerTasksTimeIntersectionException("На данное время уже запланирована задача");
+        if (task.getStartTime() != null && !task.getDuration().isZero()) {
+            if (hasIntersection(task)) {
+                throw new ManagerTasksTimeIntersectionException("На данное время уже запланирована задача");
+            }
+            tasksByPriority.add(task);
+            takeIntersectionsSlots(task);
         }
-        tasksByPriority.add(task);
-        takeIntersectionsSlots(task);
     }
-
 
     private void takeIntersectionsSlots(Task task) {
         long slotForStartTime = (long)Math.ceil(task.getStartTime().atZone(ZONE_ID).toEpochSecond() / 60.0) / 15;
@@ -381,16 +352,32 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void updateTasksByPriority(Task task, Task updatedTask) {
-        if (task.getStartTime() != null && !task.getDuration().isZero()) {
-            deleteFromTasksByPriority(Collections.singleton(task));
+        deleteFromTasksByPriority(Collections.singleton(task));
+        try {
+            addToTasksByPriority(updatedTask);
+        } catch (ManagerTasksTimeIntersectionException e) {
+            System.out.println("Ошибка при обновлении задачи " + e.getMessage());
         }
-        if (updatedTask.getStartTime() != null && !updatedTask.getDuration().isZero()) {
-            try {
-                addToTasksByPriority(updatedTask);
-            } catch (ManagerTasksTimeIntersectionException e) {
-                throw new RuntimeException(e);
+    }
+
+    private LocalDateTime getEarlyDateTimeOrNull(LocalDateTime ldt1, LocalDateTime ldt2) {
+        if (ldt1 != null) {
+            if (ldt2 != null) {
+                return ldt1.isBefore(ldt2) ? ldt1 : ldt2;
             }
+            return ldt1;
         }
+        return ldt2;
+    }
+
+    private LocalDateTime getLateDateTimeOrNull(LocalDateTime ldt1, LocalDateTime ldt2) {
+        if (ldt1 != null) {
+            if (ldt2 != null) {
+                return ldt1.isAfter(ldt2) ? ldt1 : ldt2;
+            }
+            return ldt1;
+        }
+        return ldt2;
     }
 
 }

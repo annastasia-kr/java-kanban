@@ -172,9 +172,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
         for (Epic epic : epicsList) {
             epic.setStatus(calculateEpicStatus(epic));
-            epic.setStartTime(calculateEpicStartTime(epic).orElse(null));
-            epic.setDuration(calculateEpicDuration(epic));
-            epic.setEndTime(calculateEpicEndTime(epic).orElse(null));
+            setEpicTime(epic);
         }
     }
 
