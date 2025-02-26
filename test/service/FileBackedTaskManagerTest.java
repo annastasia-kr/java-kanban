@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,87 +34,17 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         taskManager = new FileBackedTaskManager(file);
     }
 
-    @Override
-    @Test
-    void updateTask() {
-        Task task = new Task("Задача", "Описание задачи", Status.NEW);
-        taskManager.createTask(task);
-        List<String> expectedResult = new ArrayList<>();
-
-        task.setName("Новое имя задачи");
-        taskManager.updateTask(task);
-        List<String> allLines;
-        try {
-            allLines = Files.readAllLines(file.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("1,TASK,Новое имя задачи,NEW,Описание задачи");
-
-        assertEquals(expectedResult, allLines);
-        assertEquals(task, taskManager.getTaskById(task.getId()));
-    }
-
-    @Override
-    @Test
-    void updateEpic() {
-        Epic epic = new Epic("Эпик", "Описание эпика");
-        taskManager.createEpic(epic);
-        List<String> expectedResult = new ArrayList<>();
-
-        epic.setName("Новое имя эпика");
-        taskManager.updateEpic(epic);
-        List<String> allLines;
-        try {
-            allLines = Files.readAllLines(file.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("1,EPIC,Новое имя эпика,NEW,Описание эпика");
-
-        assertEquals(expectedResult, allLines);
-        assertEquals(epic, taskManager.getEpicById(epic.getId()));
-    }
-
-    @Override
-    @Test
-    void updateSubTask() {
-        Epic epic = new Epic("Эпик", "Описание эпика");
-        taskManager.createEpic(epic);
-        SubTask subTask = new SubTask("Подзадача 1", "Описание", Status.NEW, epic.getId());
-        taskManager.createSubTask(subTask);
-        List<String> expectedResult = new ArrayList<>();
-
-        subTask.setStatus(Status.IN_PROGRESS);
-        taskManager.updateSubTask(subTask);
-        List<String> allLines;
-        try {
-            allLines = Files.readAllLines(file.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("1,EPIC,Эпик,IN_PROGRESS,Описание эпика");
-        expectedResult.add("2,SUBTASK,Подзадача 1,IN_PROGRESS,Описание,1");
-
-        assertEquals(expectedResult, allLines);
-        assertEquals(subTask, taskManager.getSubTaskById(subTask.getId()));
-        assertEquals(Status.IN_PROGRESS, taskManager.getEpicById(epic.getId()).getStatus());
-    }
-
     @Test
     void saveInFile() throws IOException {
         initializeTaskManager();
         List<String> expectedResult = new ArrayList<>();
         List<String> allLines = Files.readAllLines(file.toPath());
 
-        expectedResult.add("id,type,name,status,description,epic");
-        expectedResult.add("2,TASK,Задача 1,DONE,Описание задачи 1");
-        expectedResult.add("4,TASK,Задача 2,NEW,Описание задачи 2");
-        expectedResult.add("1,EPIC,Эпик 1,NEW,Описание эпика 1");
-        expectedResult.add("3,SUBTASK,Подзадача первого эпика 1,NEW,Описание подзадачи 1,1");
+        expectedResult.add("id,type,name,status,description,duration,startTime,epic");
+        expectedResult.add("2,TASK,Задача 1,DONE,Описание задачи 1,PT1M,1990-01-01T01:01");
+        expectedResult.add("4,TASK,Задача 2,NEW,Описание задачи 2,PT12M,2000-01-12T01:10");
+        expectedResult.add("1,EPIC,Эпик 1,NEW,Описание эпика 1,PT10M,2020-03-18T19:57");
+        expectedResult.add("3,SUBTASK,Подзадача первого эпика 1,NEW,Описание подзадачи 1,PT10M,2020-03-18T19:57,1");
 
         assertEquals(expectedResult, allLines);
         assertEquals(5, taskManager.getIdCounter());
@@ -181,10 +113,16 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         assertEquals("Задача 1", taskManager.getTaskById(20).getName());
         assertEquals("Описание задачи 1", taskManager.getTaskById(20).getDescription());
         assertEquals(Status.DONE, taskManager.getTaskById(20).getStatus());
+        assertEquals(Duration.ofMinutes(57), taskManager.getTaskById(20).getDuration());
+        assertEquals(LocalDateTime.of(1990, 1, 1, 1, 1),
+                taskManager.getTaskById(20).getStartTime());
         assertNotNull(taskManager.getTaskById(10));
         assertEquals("Задача 2", taskManager.getTaskById(10).getName());
         assertEquals("Описание задачи 2", taskManager.getTaskById(10).getDescription());
         assertEquals(Status.NEW, taskManager.getTaskById(10).getStatus());
+        assertEquals(Duration.ZERO, taskManager.getTaskById(10).getDuration());
+        assertEquals(LocalDateTime.of(1997, 2, 5, 8, 1),
+                taskManager.getTaskById(10).getStartTime());
     }
 
     @Test
@@ -201,6 +139,9 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         assertEquals("Эпик 1", taskManager.getEpicById(25).getName());
         assertEquals("Описание эпика 1", taskManager.getEpicById(25).getDescription());
         assertEquals(Status.NEW, taskManager.getEpicById(25).getStatus());
+        assertEquals(Duration.ofMinutes(9), taskManager.getEpicById(25).getDuration());
+        assertEquals(LocalDateTime.of(1998, 1, 1, 1, 1),
+                taskManager.getEpicById(25).getStartTime());
     }
 
     @Test
@@ -218,6 +159,9 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         assertEquals("Описание подзадачи 1", taskManager.getSubTaskById(3).getDescription());
         assertEquals(Status.NEW, taskManager.getSubTaskById(3).getStatus());
         assertEquals(25, taskManager.getSubTaskById(3).getEpicId());
+        assertEquals(Duration.ofMinutes(9), taskManager.getSubTaskById(3).getDuration());
+        assertEquals(LocalDateTime.of(1998, 1, 1, 1, 1),
+                taskManager.getSubTaskById(3).getStartTime());
     }
 
     @Test
@@ -232,12 +176,15 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         String descriptionSubTask = "Описание подзадачи 1";
         ArrayList<Integer> subTasksId = new ArrayList<>();
         Epic epic = new Epic(nameEpic, descriptionEpic);
-        Task task = new Task(nameTask, descriptionTask, Status.DONE);
-        Task task2 = new Task(nameTask2, descriptionTask2, Status.NEW);
+        Task task = new Task(nameTask, descriptionTask, Status.DONE, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 1));
+        Task task2 = new Task(nameTask2, descriptionTask2, Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 1, 26));
 
         Epic createdEpic = taskManager.createEpic(epic);
         taskManager.createTask(task);
-        SubTask subTask = new SubTask(nameSubTask, descriptionSubTask, Status.NEW, createdEpic.getId());
+        SubTask subTask = new SubTask(nameSubTask, descriptionSubTask, Status.NEW, Duration.ZERO,
+                LocalDateTime.of(1990, 1, 1, 2, 3), createdEpic.getId());
         taskManager.createSubTask(subTask);
         taskManager.createTask(task2);
         subTasksId.add(subTask.getId());
@@ -254,11 +201,44 @@ class FileBackedTaskManagerTest extends AbstractTaskManagerTest<FileBackedTaskMa
         assertEquals(5, taskManager.getIdCounter());
     }
 
+    @Test
+    void saveInFileTaskWhereStartTimeIsNull() throws IOException {
+        String nameTask = "Задача 1";
+        String descriptionTask = "Описание задачи 1";
+        Task task = new Task(nameTask, descriptionTask, Status.DONE, Duration.ZERO, null);
+
+        taskManager.createTask(task);
+        List<String> expectedResult = new ArrayList<>();
+        List<String> allLines = Files.readAllLines(file.toPath());
+
+        expectedResult.add("id,type,name,status,description,duration,startTime,epic");
+        expectedResult.add("1,TASK,Задача 1,DONE,Описание задачи 1,PT0S,null");
+
+        assertEquals(expectedResult, allLines);
+        assertEquals(2, taskManager.getIdCounter());
+
+    }
+
+    @Test
+    void readTaskWhereStartTimeIsNull() {
+        try (FileWriter fileWriter = new FileWriter(file)) {
+            fileWriter.write("id,type,name,status,description,duration,startTime,epic\n");
+            fileWriter.write("5,TASK,Задача 1,DONE,Описание задачи 1,PT57M,null\n");
+        } catch(IOException e) {
+            throw new ManagerSaveException("Ошибка при сохранении в файл " + e.getMessage());
+        }
+
+        taskManager = FileBackedTaskManager.loadFromFile(file);
+
+        assertNull(taskManager.getTaskById(5).getStartTime());
+        assertNotNull(taskManager.getTaskById(5));
+    }
+
     private void initializeFile(FileWriter fileWriter) throws IOException {
-        fileWriter.write("id,type,name,status,description,epic\n");
-        fileWriter.write("20,TASK,Задача 1,DONE,Описание задачи 1\n");
-        fileWriter.write("10,TASK,Задача 2,NEW,Описание задачи 2\n");
-        fileWriter.write("25,EPIC,Эпик 1,NEW,Описание эпика 1\n");
-        fileWriter.write("3,SUBTASK,Подзадача первого эпика 1,NEW,Описание подзадачи 1,25\n");
+        fileWriter.write("id,type,name,status,description,duration,startTime,epic\n");
+        fileWriter.write("20,TASK,Задача 1,DONE,Описание задачи 1,PT57M,1990-01-01T01:01\n");
+        fileWriter.write("10,TASK,Задача 2,NEW,Описание задачи 2,PT0S,1997-02-05T08:01\n");
+        fileWriter.write("25,EPIC,Эпик 1,NEW,Описание эпика 1,PT89M,2000-01-01T01:01\n");
+        fileWriter.write("3,SUBTASK,Подзадача первого эпика 1,NEW,Описание подзадачи 1,PT9M,1998-01-01T01:01,25\n");
     }
 }

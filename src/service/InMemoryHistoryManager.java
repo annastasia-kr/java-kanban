@@ -8,10 +8,15 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     private Node<Task> head;
     private Node<Task> tail;
-    private Map<Integer, Node<Task>> historyId;
+    private final Map<Integer, Node<Task>> historyId;
 
     public InMemoryHistoryManager() {
         this.historyId = new HashMap<>();
+    }
+
+    @Override
+    public List<Task> getHistory() {
+        return getTasks();
     }
 
     @Override
@@ -36,17 +41,12 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void removeAll(Set<Integer> tasksId) {
-        for (Integer id : tasksId) {
-            if (historyId.containsKey(id)) {
-                removeNode(historyId.get(id));
-                historyId.remove(id);
-            }
-        }
-    }
-
-    @Override
-    public List<Task> getHistory() {
-        return getTasks();
+        tasksId.stream()
+                .filter(id -> historyId.containsKey(id))
+                .forEach(id -> {
+                    removeNode(historyId.get(id));
+                    historyId.remove(id);
+                });
     }
 
     private void removeNode(Node<Task> node) {
