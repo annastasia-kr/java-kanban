@@ -13,8 +13,4 @@ public final class Managers {
         return new InMemoryHistoryManager();
     }
 
-    public static UserManager getDefaultUser() {
-        return new InMemoryUserManager();
-    }
-
 }
