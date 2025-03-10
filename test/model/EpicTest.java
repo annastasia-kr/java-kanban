@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.Managers;
 import service.TaskManager;
-import user.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,7 +12,6 @@ class EpicTest {
     TaskManager taskManager;
     Epic epicFromTaskManager;
     Epic epicFromTaskManagerForCompare;
-    User user = new User("Пользователь");
 
     @BeforeEach
     void beforeEach() {
