@@ -112,7 +112,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task deleteTaskById(int id) {
-        if (taskMap.containsKey(id)){
+        if (taskMap.containsKey(id)) {
             deleteFromTasksByPriority(Collections.singleton(getTaskById(id)));
             historyManager.remove(id);
             return taskMap.remove(id);
