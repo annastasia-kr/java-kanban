@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.Managers;
 import service.TaskManager;
-import user.User;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,7 +15,6 @@ class TaskTest {
     TaskManager taskManager;
     Task taskFromTaskManager;
     Task taskFromTaskManagerForCompare;
-    User user = new User("Пользователь");
 
     @BeforeEach
     void beforeEach() {

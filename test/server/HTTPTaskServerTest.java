@@ -10,9 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.InMemoryTaskManager;
-import service.Managers;
 import service.TaskManager;
-import user.User;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
