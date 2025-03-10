@@ -18,7 +18,6 @@ public class HTTPTaskServer {
     public static final int PORT = 8080;
 
     private final HttpServer server;
-
     private final TaskManager taskManager;
 
     public HTTPTaskServer(TaskManager taskManager) throws IOException {
