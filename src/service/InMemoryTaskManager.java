@@ -1,8 +1,9 @@
 package service;
 
-import exceptions.ManagerTasksTimeIntersectionException;
+import exception.ManagerTasksTimeIntersectionException;
+import exception.NotFoundException;
 import model.Epic;
-import enumirations.Status;
+import enumiration.Status;
 import model.SubTask;
 import model.Task;
 
@@ -76,7 +77,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task getTaskById(int id) {
         if (!taskMap.containsKey(id)) {
-            return null;
+            String errorMessage = String.format("Задача с id = %d не найдена!", id);
+            throw new NotFoundException(errorMessage);
         }
         Task findingTask = taskMap.get(id);
         Task task = new Task(findingTask);
@@ -87,7 +89,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Epic getEpicById(int id) {
         if (!epicMap.containsKey(id)) {
-            return null;
+            String errorMessage = String.format("Эпик с id = %d не найден!", id);
+            throw new NotFoundException(errorMessage);
         }
         Epic findingEpic = epicMap.get(id);
         Epic epic = new Epic(findingEpic);
@@ -98,7 +101,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public SubTask getSubTaskById(int id) {
         if (!subTaskMap.containsKey(id)) {
-            return null;
+            String errorMessage = String.format("Подзадача с id = %d не найдена!", id);
+            throw new NotFoundException(errorMessage);
         }
         SubTask findingSubTask = subTaskMap.get(id);
         SubTask subTask = new SubTask(findingSubTask);
@@ -108,9 +112,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task deleteTaskById(int id) {
-        deleteFromTasksByPriority(Collections.singleton(getTaskById(id)));
-        historyManager.remove(id);
-        return taskMap.remove(id);
+        if (taskMap.containsKey(id)){
+            deleteFromTasksByPriority(Collections.singleton(getTaskById(id)));
+            historyManager.remove(id);
+            return taskMap.remove(id);
+        }
+        String errorMessage = String.format("Задача с id = %d не найдена!", id);
+        throw new NotFoundException(errorMessage);
     }
 
     @Override
@@ -125,7 +133,8 @@ public class InMemoryTaskManager implements TaskManager {
             historyManager.remove(id);
             return epicMap.remove(id);
         }
-        return null;
+        String errorMessage = String.format("Эпик с id = %d не найден", id);
+        throw new NotFoundException(errorMessage);
     }
 
     @Override
@@ -140,7 +149,8 @@ public class InMemoryTaskManager implements TaskManager {
             historyManager.remove(id);
             return subTaskMap.remove(id);
         }
-        return null;
+        String errorMessage = String.format("Подзадача с id = %d не найдена!", id);
+        throw new NotFoundException(errorMessage);
     }
 
     @Override
@@ -148,11 +158,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (task == null) {
             return null;
         }
-        try {
-            addToTasksByPriority(task);
-        } catch (ManagerTasksTimeIntersectionException e) {
-            throw new RuntimeException(e);
-        }
+        addToTasksByPriority(task);
+
         task.setId(idCounter);
         Task createdTask = new Task(task);
         taskMap.put(idCounter, createdTask);
@@ -178,11 +185,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTask == null) {
             return null;
         }
-        try {
-            addToTasksByPriority(subTask);
-        } catch (ManagerTasksTimeIntersectionException e) {
-            throw new RuntimeException(e);
-        }
+
+        addToTasksByPriority(subTask);
         subTask.setId(idCounter);
         if (epicMap.containsKey(subTask.getEpicId())) {
             SubTask createdSubTask = new SubTask(subTask);
@@ -201,35 +205,41 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task updateTask(Task task) {
-        if (taskMap.containsKey(task.getId())) {
-            updateTasksByPriority(taskMap.get(task.getId()), task);
-            Task existingTask = new Task(task);
-            taskMap.put(existingTask.getId(), existingTask);
+        if (!taskMap.containsKey(task.getId())) {
+            String errorMessage = String.format("Задача с id = %d не найдена!", task.getId());
+            throw new NotFoundException(errorMessage);
         }
+        updateTasksByPriority(taskMap.get(task.getId()), task);
+        Task existingTask = new Task(task);
+        taskMap.put(existingTask.getId(), existingTask);
         return task;
     }
 
     @Override
     public Epic updateEpic(Epic epic) {
-        if (epicMap.containsKey(epic.getId())) {
-            Epic existingEpic = epicMap.get(epic.getId());
-            existingEpic.setName(epic.getName());
-            existingEpic.setDescription(epic.getDescription());
+        if (!epicMap.containsKey(epic.getId())) {
+            String errorMessage = String.format("Эпик с id = %d не найден!", epic.getId());
+            throw new NotFoundException(errorMessage);
         }
+        Epic existingEpic = epicMap.get(epic.getId());
+        existingEpic.setName(epic.getName());
+        existingEpic.setDescription(epic.getDescription());
         return epic;
     }
 
     @Override
     public SubTask updateSubTask(SubTask subTask) {
-        if (subTaskMap.containsKey(subTask.getId())) {
-            updateTasksByPriority(subTaskMap.get(subTask.getId()), subTask);
-            SubTask existingSubTask = new SubTask(subTask);
-            subTaskMap.put(existingSubTask.getId(), existingSubTask);
-            if (epicMap.containsKey(existingSubTask.getEpicId())) {
-                Epic epic = epicMap.get(existingSubTask.getEpicId());
-                epic.setStatus(calculateEpicStatus(epic));
-                setEpicTime(epic);
-            }
+        if (!subTaskMap.containsKey(subTask.getId())) {
+            String errorMessage = String.format("Подзадача с id = %d не найдена!", subTask.getId());
+            throw new NotFoundException(errorMessage);
+        }
+        updateTasksByPriority(subTaskMap.get(subTask.getId()), subTask);
+        SubTask existingSubTask = new SubTask(subTask);
+        subTaskMap.put(existingSubTask.getId(), existingSubTask);
+        if (epicMap.containsKey(existingSubTask.getEpicId())) {
+            Epic epic = epicMap.get(existingSubTask.getEpicId());
+            epic.setStatus(calculateEpicStatus(epic));
+            setEpicTime(epic);
         }
         return subTask;
     }

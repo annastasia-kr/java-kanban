@@ -1,4 +1,4 @@
-package enumirations;
+package enumiration;
 
 public enum Type {
     TASK,

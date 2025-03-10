@@ -1,6 +1,6 @@
 package model;
 
-import enumirations.Status;
+import enumiration.Status;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

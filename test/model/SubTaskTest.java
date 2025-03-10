@@ -1,10 +1,11 @@
 package model;
 
-import enumirations.Status;
+import enumiration.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.Managers;
 import service.TaskManager;
+import user.User;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ class SubTaskTest {
     TaskManager taskManager;
     SubTask subTaskFromTaskManager;
     SubTask subTaskFromTaskManagerForCompare;
+    User user = new User("Пользователь");
 
     @BeforeEach
     void beforeEach() {
@@ -24,9 +26,11 @@ class SubTaskTest {
         Epic epic = taskManager.createEpic(new Epic("Эпик", "Подготовка к защите"));
 
         SubTask createdSubTask = taskManager.createSubTask(new SubTask("Задача_1", "Написать план",
-                Status.DONE, Duration.ofMinutes(10), LocalDateTime.of(2025, 2, 1, 1, 1), epic.getId()));
+                Status.DONE, Duration.ofMinutes(10), LocalDateTime.of(2025, 2, 1, 1, 1),
+                epic.getId()));
         SubTask subTaskForCompare = taskManager.createSubTask(new SubTask("Задача_1", "Написать план",
-                Status.DONE, Duration.ofMinutes(10), LocalDateTime.of(2025, 1, 1, 1, 1), epic.getId()));
+                Status.DONE, Duration.ofMinutes(10), LocalDateTime.of(2025, 1, 1, 1, 1),
+                epic.getId()));
 
         subTaskFromTaskManager = taskManager.getSubTaskById(createdSubTask.getId());
         subTaskFromTaskManagerForCompare = taskManager.getSubTaskById(subTaskForCompare.getId());
