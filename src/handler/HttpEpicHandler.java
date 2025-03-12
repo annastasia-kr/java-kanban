@@ -22,37 +22,37 @@ public class HttpEpicHandler extends BaseHttpHandler {
             String path = exchange.getRequestURI().getPath();
             String requestMethod = exchange.getRequestMethod();
             switch (requestMethod) {
-                case "GET": {
+                case GET: {
                     handleGet(exchange, path);
                     break;
                 }
-                case "DELETE": {
+                case DELETE: {
                     handleDelete(exchange, path);
                     break;
                 }
-                case "POST": {
+                case POST: {
                     handlePost(exchange, path);
                     break;
                 }
                 default: {
                     ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(String.format("Обработка " +
-                            "метода %s не предусмотрена", requestMethod), 405, exchange.getRequestURI().getPath());
+                            "метода %s не предусмотрена", requestMethod), METHOD_NOT_ALLOWED_CODE, exchange.getRequestURI().getPath());
                     String jsonText = jsonMapper.toJson(serviceErrorResponse);
                     sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
                 }
             }
-        } catch (NotFoundException exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 404,
+        } catch (ManagerTasksTimeIntersectionException exception) {
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), NOT_ACCEPTABLE_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
-        } catch (ManagerTasksTimeIntersectionException exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 406,
+        } catch (NotFoundException exception) {
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), NOT_FOUND_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
         } catch (Exception exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 500,
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
@@ -64,7 +64,7 @@ public class HttpEpicHandler extends BaseHttpHandler {
     private void handleGet(HttpExchange exchange, String path) throws IOException {
         if (Pattern.matches("^/epics$", path)) {
             String response = jsonMapper.toJson(taskManager.getEpicList());
-            sendText(exchange, response, 200);
+            sendText(exchange, response, OK_CODE);
         }
         if (Pattern.matches("^/epics/\\d+$", path)) {
             String pathId = path.replaceFirst("/epics/", "");
@@ -72,10 +72,10 @@ public class HttpEpicHandler extends BaseHttpHandler {
             if (id != -1) {
                 Epic foundedEpic = taskManager.getEpicById(id);
                 String response = jsonMapper.toJson(foundedEpic);
-                sendText(exchange, response, 200);
+                sendText(exchange, response, OK_CODE);
             } else {
                 ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse("Некорректный формат id",
-                        404, exchange.getRequestURI().getPath());
+                        NOT_FOUND_CODE, exchange.getRequestURI().getPath());
                 String jsonText = jsonMapper.toJson(serviceErrorResponse);
                 sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
             }
@@ -86,10 +86,10 @@ public class HttpEpicHandler extends BaseHttpHandler {
             if (id != -1) {
                 Epic foundedEpic = taskManager.getEpicById(id);
                 String response = jsonMapper.toJson(taskManager.getEpicSubTasks(foundedEpic));
-                sendText(exchange, response, 200);
+                sendText(exchange, response, OK_CODE);
             } else {
                 ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse("Некорректный формат id",
-                        404, exchange.getRequestURI().getPath());
+                        NOT_FOUND_CODE, exchange.getRequestURI().getPath());
                 String jsonText = jsonMapper.toJson(serviceErrorResponse);
                 sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
             }
@@ -103,11 +103,11 @@ public class HttpEpicHandler extends BaseHttpHandler {
             if (id != -1) {
                 Epic deletedEpic = taskManager.deleteEpicById(id);
                 String response = jsonMapper.toJson(deletedEpic);
-                sendText(exchange, response, 200);
+                sendText(exchange, response, OK_CODE);
             }
         } else {
             ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse("Некорректный формат id",
-                    404, exchange.getRequestURI().getPath());
+                    NOT_FOUND_CODE, exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
         }
@@ -122,7 +122,7 @@ public class HttpEpicHandler extends BaseHttpHandler {
             Epic epic = taskManager.createEpic(epicFromJson);
 
             String response = jsonMapper.toJson(epic);
-            sendText(exchange, response, 201);
+            sendText(exchange, response, CREATED_CODE);
         }
     }
 }

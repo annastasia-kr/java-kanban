@@ -1,18 +1,12 @@
 package server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
 import handler.*;
 import service.Managers;
 import service.TaskManager;
-import typeadapter.DurationAdapter;
-import typeadapter.LocalDateTimeAdapter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
-import java.time.LocalDateTime;
 
 public class HTTPTaskServer {
     public static final int PORT = 8080;
@@ -34,7 +28,7 @@ public class HTTPTaskServer {
     public static void main(String[] args) throws IOException {
         HTTPTaskServer taskServer = new HTTPTaskServer(Managers.getDefault());
         taskServer.start();
-        taskServer.stop();
+       // taskServer.stop();
     }
 
     public void start() {
@@ -48,11 +42,4 @@ public class HTTPTaskServer {
         System.out.println("Stopped TaskServer " + PORT);
     }
 
-    public static Gson getGson() {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
-                .create();
-        return gson;
-    }
 }

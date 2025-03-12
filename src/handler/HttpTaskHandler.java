@@ -22,37 +22,37 @@ public class HttpTaskHandler extends BaseHttpHandler {
             String path = exchange.getRequestURI().getPath();
             String requestMethod = exchange.getRequestMethod();
             switch (requestMethod) {
-                case "GET": {
+                case GET: {
                     handleGet(exchange, path);
                     break;
                 }
-                case "DELETE": {
+                case DELETE: {
                     handleDelete(exchange, path);
                     break;
                 }
-                case "POST": {
+                case POST: {
                     handlePost(exchange, path);
                     break;
                 }
                 default: {
                     ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(String.format("Обработка " +
-                            "метода %s не предусмотрена", requestMethod), 405, exchange.getRequestURI().getPath());
+                            "метода %s не предусмотрена", requestMethod), METHOD_NOT_ALLOWED_CODE, exchange.getRequestURI().getPath());
                     String jsonText = jsonMapper.toJson(serviceErrorResponse);
                     sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
                 }
             }
         } catch (NotFoundException exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 404,
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), NOT_FOUND_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
         } catch (ManagerTasksTimeIntersectionException exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 406,
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), NOT_ACCEPTABLE_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
         } catch (Exception exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 500,
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
@@ -64,7 +64,7 @@ public class HttpTaskHandler extends BaseHttpHandler {
     private void handleGet(HttpExchange exchange, String path) throws IOException {
         if (Pattern.matches("^/tasks$", path)) {
             String response = jsonMapper.toJson(taskManager.getTaskList());
-            sendText(exchange, response, 200);
+            sendText(exchange, response, OK_CODE);
         }
         if (Pattern.matches("^/tasks/\\d+$", path)) {
             String pathId = path.replaceFirst("/tasks/", "");
@@ -72,10 +72,10 @@ public class HttpTaskHandler extends BaseHttpHandler {
             if (id != -1) {
                 Task foundedTask = taskManager.getTaskById(id);
                 String response = jsonMapper.toJson(foundedTask);
-                sendText(exchange, response, 200);
+                sendText(exchange, response, OK_CODE);
             } else {
                 ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse("Некорректный формат id",
-                        404, exchange.getRequestURI().getPath());
+                        NOT_FOUND_CODE, exchange.getRequestURI().getPath());
                 String jsonText = jsonMapper.toJson(serviceErrorResponse);
                 sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
             }
@@ -89,11 +89,11 @@ public class HttpTaskHandler extends BaseHttpHandler {
             if (id != -1) {
                 Task deletedTask = taskManager.deleteTaskById(id);
                 String response = jsonMapper.toJson(deletedTask);
-                sendText(exchange, response, 200);
+                sendText(exchange, response, OK_CODE);
             }
         } else {
             ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse("Некорректный формат id",
-                    404, exchange.getRequestURI().getPath());
+                    NOT_FOUND_CODE, exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
         }
@@ -112,7 +112,7 @@ public class HttpTaskHandler extends BaseHttpHandler {
                 task = taskManager.updateTask(taskFromJson);
             }
             String response = jsonMapper.toJson(task);
-            sendText(exchange, response, 201);
+            sendText(exchange, response, CREATED_CODE);
         }
     }
 }

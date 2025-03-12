@@ -18,19 +18,19 @@ public class HttpHistoryHandler extends BaseHttpHandler {
             String path = exchange.getRequestURI().getPath();
             String requestMethod = exchange.getRequestMethod();
             switch (requestMethod) {
-                case "GET": {
+                case GET: {
                     handleGet(exchange, path);
                     break;
                 }
                 default: {
                     ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(String.format("Обработка " +
-                            "метода %s не предусмотрена", requestMethod), 405, exchange.getRequestURI().getPath());
+                            "метода %s не предусмотрена", requestMethod), METHOD_NOT_ALLOWED_CODE, exchange.getRequestURI().getPath());
                     String jsonText = jsonMapper.toJson(serviceErrorResponse);
                     sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
                 }
             }
         } catch (Exception exception) {
-            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), 500,
+            ServiceErrorResponse serviceErrorResponse = new ServiceErrorResponse(exception.getMessage(), INTERNAL_SERVER_ERROR_CODE,
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
@@ -42,7 +42,7 @@ public class HttpHistoryHandler extends BaseHttpHandler {
     private void handleGet(HttpExchange exchange, String path) throws IOException {
         if (Pattern.matches("^/history$", path)) {
             String response = jsonMapper.toJson(taskManager.getHistory());
-            sendText(exchange, response, 200);
+            sendText(exchange, response, OK_CODE);
         }
     }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.InMemoryTaskManager;
+import service.Managers;
 import service.TaskManager;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class HTTPTaskServerTest {
     private TaskManager taskManager = new InMemoryTaskManager();
     private HTTPTaskServer taskServer  = new HTTPTaskServer(taskManager);
-    private final Gson gson = HTTPTaskServer.getGson();
+    private final Gson gson = Managers.getGson();
 
     HTTPTaskServerTest() throws IOException {
     }
@@ -38,6 +39,7 @@ class HTTPTaskServerTest {
         taskManager.clearTaskMap();
         taskManager.clearEpicMap();
         taskManager.clearSubTaskMap();
+
         taskServer.start();
     }
 
@@ -360,9 +362,11 @@ class HTTPTaskServerTest {
         taskManager.createSubTask(task);
 
         // создаём HTTP-клиент и запрос
-        HttpClient client = HttpClient.newHttpClient();
-        URI url = URI.create("http://localhost:8080/epics/2");
-        HttpRequest request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        HttpClient client = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        URI url = URI.create("http://localhost:8080/epics/20");
+        HttpRequest request = HttpRequest.newBuilder().uri(url).DELETE().header("Content-Type", "application/json").build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         // проверяем код ответа
