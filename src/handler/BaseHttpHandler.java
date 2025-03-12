@@ -35,6 +35,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
         h.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
         h.sendResponseHeaders(code, response.length);
         h.getResponseBody().write(response);
+        h.close();
     }
 
     protected int parsePathId(String path) {

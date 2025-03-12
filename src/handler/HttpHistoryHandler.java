@@ -34,8 +34,6 @@ public class HttpHistoryHandler extends BaseHttpHandler {
                     exchange.getRequestURI().getPath());
             String jsonText = jsonMapper.toJson(serviceErrorResponse);
             sendText(exchange, jsonText, serviceErrorResponse.getErrorCode());
-        } finally {
-            exchange.close();
         }
     }
 
