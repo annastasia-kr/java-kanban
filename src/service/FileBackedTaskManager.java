@@ -1,9 +1,9 @@
 package service;
 
-import enumirations.Status;
-import enumirations.Type;
-import exceptions.ManagerFileInitializationException;
-import exceptions.ManagerSaveException;
+import enumiration.Status;
+import enumiration.Type;
+import exception.ManagerFileInitializationException;
+import exception.ManagerSaveException;
 import model.Epic;
 import model.SubTask;
 import model.Task;
